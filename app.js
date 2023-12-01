@@ -19,7 +19,7 @@ const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
-const dbUrl =  process.env.DB_URL;
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp';
 const MongoStore = require('connect-mongo');
 
 
@@ -118,12 +118,14 @@ app.use(
     }),
   );
 
+  const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
+
 
   const store = MongoStore.create({
     mongoUrl: dbUrl,
     touchAfter: 24 * 60 * 60,
     crypto: {
-        secret: 'thisshouldbeabettersecret!'
+        secret
     }
 });
 
@@ -137,7 +139,7 @@ store.on("error", function (e) {
 const sessionConfig = {
     store:store,
     name: 'pranavsession',
-    secret: 'thisshouldbeabettersecret!',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -199,6 +201,7 @@ app.use((err, req, res, next) => {
 })
 
 
-app.listen(3000, () => {
-    console.log('Serving on port 3000')
-}) 
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Serving on port ${port}`)
+})
